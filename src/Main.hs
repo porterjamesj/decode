@@ -10,7 +10,7 @@ data Tok =
   TChar Char
 
 instance Show Tok where
-  show (TChar c) = show c
+  show (TChar c) = [c]
   show (TBlock i s) = join $ replicate i s
 
 int :: Parser Int
@@ -23,10 +23,13 @@ parseBlock :: Parser Tok
 parseBlock = TBlock <$> int <*> between (char '[') (char ']') (many lowerChar)
 
 parseTok :: Parser Tok
-parseTok = parseChar <|> parseBlock
+parseTok = parseBlock <|> parseChar
 
 parseInput :: Parser [Tok]
-parseInput = many parseTok
+parseInput = many parseTok <* eof
 
 main :: IO ()
-main = putStrLn "hello"
+main = do
+  i <- getLine
+  let result = parse parseInput "stdin" i
+  putStr $ either parseErrorPretty (concatMap show) result
