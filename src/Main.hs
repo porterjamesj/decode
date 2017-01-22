@@ -6,12 +6,13 @@ import Text.Megaparsec.String
 import Text.Megaparsec.Lexer
 
 data Tok =
-  TBlock Int String |
+  TBlock Int [Tok] |
   TChar Char
 
 instance Show Tok where
   show (TChar c) = [c]
-  show (TBlock i s) = join $ replicate i s
+  show (TBlock i toks) = join $ replicate i s
+    where s = concatMap show toks
 
 int :: Parser Int
 int = fromIntegral <$> integer
@@ -20,7 +21,7 @@ parseChar :: Parser Tok
 parseChar = TChar <$> lowerChar
 
 parseBlock :: Parser Tok
-parseBlock = TBlock <$> int <*> between (char '[') (char ']') (many lowerChar)
+parseBlock = TBlock <$> int <*> between (char '[') (char ']') (many parseTok)
 
 parseTok :: Parser Tok
 parseTok = parseBlock <|> parseChar
